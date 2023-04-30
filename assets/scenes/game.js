@@ -1,23 +1,38 @@
+import {SHAPES} from '../../utils/utils.js';
+const {TRIANGLE, SQUARE, DIAMOND} = SHAPES;
+
 export default class Game extends Phaser.Scene {
   //export default para poder importar desde otra clase
+  score;
   constructor() {
     super("game");
   }
-  init() {}
+
+  init() {
+    this.shapesRecolected = {
+      [TRIANGLE]: {count: 0, score: 10},
+      [SQUARE]: {count: 0, score: 20},
+      [DIAMOND]: {count: 0, score: 30}
+    };
+    console.log(this.shapesRecolected);
+  }
+
   preload() {
     this.load.image("sky", "../assets/images/sky.png");
     this.load.image("ground", "../assets/images/platform.png");
     this.load.image("ninja", "../assets/images/ninja.png");
     this.load.image("keyR", "../assets/images/keyR.png");
-    this.load.image("square", "../assets/images/square.png");
-    this.load.image("triangle", "../assets/images/triangle.png");
-    this.load.image("diamond", "../assets/images/diamond.png");
+    this.load.image(SQUARE, "../assets/images/square.png");
+    this.load.image(TRIANGLE, "../assets/images/triangle.png");
+    this.load.image(DIAMOND, "../assets/images/diamond.png");
     this.load.image("win", "../assets/images/win.png");
-    this.load.image("bgMenu", "../assets/images/bgMenu.jpg");
+    this.load.image("bgMenu", "./assets/images/bgMenu.jpg");
   }
+
   create() {
     //add background
     this.add.image(400, 300, "sky").setScale(0.555);
+
     //add static platforms group
     let platforms = this.physics.add.staticGroup();
     platforms.create(400, 568, "ground").setScale(2).refreshBody();
@@ -48,7 +63,25 @@ export default class Game extends Phaser.Scene {
     this.physics.add.collider(this.player, platforms); //Agregar colisones a la escena.Colision entre dos objetos.
     this.physics.add.collider(this.player, this.shapesGroup);
     this.physics.add.collider(platforms, this.shapesGroup);
+
+    //add overlap between player and shapes
+    this.physics.add.overlap(
+      this.player,
+      this.shapesGroup,
+      this.collectShape,
+      null,
+      this
+    );
+
+    //add socre on scene
+    this.score = 0;
+    this.scoreText = this.add.text(20, 20, "Score:" + this.score,{
+      fontSize: "32px",
+      fontStyle: "bold",
+      fill: "#FFF"
+    });
   }
+
   update() {
     //update player movement
     if (this.cursors.left.isDown) {
@@ -63,16 +96,30 @@ export default class Game extends Phaser.Scene {
       this.player.setVelocityY(-300);
     }
   }
+
   addShape() {
     //get random shape
-    const randomShape = Phaser.Math.RND.pick(["triangle", "diamond", "square"]); //selecciona aleatoriamente una forma
+    const randomShape = Phaser.Math.RND.pick([DIAMOND, SQUARE, TRIANGLE]); //selecciona aleatoriamente una forma
 
     //get random position x
     const randomX = Phaser.Math.RND.between(0, 800);
 
     // add shape to screen
-    this.shapesGroup.create(randomX, 0, randomShape);
+    this.shapesGroup.create(randomX, 0, randomShape).setCircle(25,7,7);;  
 
     console.log("shape is added", randomX, randomShape);
+  }
+
+  collectShape(player, shape){
+    //remove shape from screen
+    shape.disableBody(true, true);
+    const shapeName = shape.texture.key;
+    this.shapesRecolected[shapeName].count++;
+
+    this.score += this.shapesRecolected[shapeName].score;
+    console.log(this.shapesRecolected[shapeName].score);
+    this.scoreText.setText(`Score: ${this.score.toString()}`);//convierte la variable a un string
+
+    console.log(this.shapeRecolected);
   }
 }
