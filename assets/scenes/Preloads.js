@@ -9,7 +9,8 @@ export default class Preload extends Phaser.Scene {
   preload() {
     this.load.image("fondoDia", "./assets/images/fondo_dia.jpg");
     this.load.image("ground", "./assets/images/pasto.png");
-    this.load.image("pinguino", "./assets/images/pinguino.png");
+    this.load.image("ground2", "./assets/images/tierra.png");
+    this.load.image("ninja", "./assets/images/ninja.png");
     this.load.image(ORANGE, "./assets/images/naranja.png");
     this.load.image(APPLE, "./assets/images/manzana.png");
     this.load.image(PINE, "./assets/images/anana.png");

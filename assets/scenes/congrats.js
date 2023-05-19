@@ -6,6 +6,6 @@ export default class Congrats extends Phaser.Scene {
     create() {
         this.add.image(400, 240, "congrats")
             .setInteractive()
-            .on('pointerdown', () => this.scene.start('Game'));
+            .on('pointerdown', () => this.scene.start('game'));
     }
 }
