@@ -5,6 +5,6 @@ const FRUIT = {
     STRAW: "strawberry"
 }
 
-export {//Se pueden ir agregando objetos.
+export {
     FRUIT,
 }

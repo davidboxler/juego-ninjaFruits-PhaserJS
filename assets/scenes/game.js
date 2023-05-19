@@ -1,9 +1,9 @@
-import { FRUIT } from '../../utils/utils.js';
+import { FRUIT } from "../../utils/utils.js";
 const { PINE, ORANGE, APPLE, STRAW } = FRUIT;
 
 export default class Game extends Phaser.Scene {
-  //export default para poder importar desde otra clase
   score;
+  timeLeft = 40;
   constructor() {
     super("game");
   }
@@ -13,26 +13,18 @@ export default class Game extends Phaser.Scene {
       [ORANGE]: { count: 0, score: 5 },
       [APPLE]: { count: 0, score: 10 },
       [PINE]: { count: 0, score: 15 },
-      [STRAW]: { count: 0, score: 20 }
+      [STRAW]: { count: 0, score: 20 },
     };
-    console.log(this.fruitRecolected);
   }
 
   preload() {
-    // this.load.image("sky", "../assets/images/sky.png");
     this.load.image("fondo", "../assets/images/fondo-3.jpg");
     this.load.image("ground", "../assets/images/piso-1.png");
-    // this.load.image("ground", "../assets/images/platform.png");
     this.load.image("ninja", "../assets/images/ninja.png");
-    
-    // this.load.image(SQUARE, "../assets/images/square.png");
-    // this.load.image(TRIANGLE, "../assets/images/triangle.png");
-    // this.load.image(DIAMOND, "../assets/images/diamond.png");
     this.load.image(ORANGE, "../assets/images/orange-1.png");
     this.load.image(APPLE, "../assets/images/apple-1.png");
     this.load.image(PINE, "../assets/images/pine-1.png");
     this.load.image(STRAW, "../assets/images/strawberry-1.png");
-
     this.load.image("win", "../assets/images/win.png");
     this.load.image("bgMenu", "./assets/images/bgMenu.jpg");
   }
@@ -51,10 +43,6 @@ export default class Game extends Phaser.Scene {
 
     //add shapes group
     this.shapesGroup = this.physics.add.group();
-    /*this.shapesGroup.create(100, 0, 'diamond');
-    this.shapesGroup.create(200, 0, 'triangle');
-    this.shapesGroup.create(300, 0, 'square');*/
-    //this.addShape();
 
     //create events to add shapes
     this.time.addEvent({
@@ -68,7 +56,8 @@ export default class Game extends Phaser.Scene {
     this.cursors = this.input.keyboard.createCursorKeys();
 
     //add collider between player and platforms
-    this.physics.add.collider(this.player, platforms); //Agregar colisones a la escena.Colision entre dos objetos.
+    //Agregar colisones a la escena.Colision entre dos objetos.
+    this.physics.add.collider(this.player, platforms);
     this.physics.add.collider(this.player, this.shapesGroup);
     this.physics.add.collider(platforms, this.shapesGroup);
 
@@ -86,27 +75,20 @@ export default class Game extends Phaser.Scene {
     this.scoreText = this.add.text(10, 45, "Score:" + this.score, {
       fontSize: "32px",
       fontStyle: "bold",
-      fill: "#FFF"
+      fill: "#FFF",
     });
 
-    var timeLeft = 40;
-
-    var timeText = this.add.text(10, 10, 'Tiempo restante: ' + timeLeft, { fontSize: '32px', fill: '#fff', fontStyle: 'bold' });
+    this.timeText = this.add.text(10, 10, "Tiempo restante: " + this.timeLeft, {
+      fontSize: "32px",
+      fill: "#fff",
+      fontStyle: "bold",
+    });
 
     this.time.addEvent({
       delay: 1000,
-      callback: function () {
-        timeLeft--;
-        timeText.setText('Tiempo restante: ' + timeLeft);
-        if (timeLeft <= 0) {
-          this.gameOver();
-        }
-        if (this.score >= 100) {
-          this.congratulations();
-        }
-      },
+      callback: this.timer,
       callbackScope: this,
-      loop: true
+      loop: true,
     });
   }
 
@@ -134,8 +116,6 @@ export default class Game extends Phaser.Scene {
 
     // add shape to screen
     this.shapesGroup.create(randomX, 0, randomShape);
-
-    console.log("shape is added", randomX, randomShape);
   }
 
   collectShape(player, shape) {
@@ -145,39 +125,37 @@ export default class Game extends Phaser.Scene {
     this.fruitRecolected[shapeName].count++;
 
     this.score += this.fruitRecolected[shapeName].score;
-    console.log(this.fruitRecolected[shapeName].score);
-    this.scoreText.setText(`Score: ${this.score.toString()}`);//convierte la variable a un string
+    this.scoreText.setText(`Score: ${this.score.toString()}`);
+  }
 
-    console.log(this.shapeRecolected);
+  timer() {
+    this.timeLeft--;
+    this.timeText.setText("Tiempo restante: " + this.timeLeft);
+    if (this.timeLeft <= 0) {
+      this.gameOver();
+    }
+    if (this.score >= 100) {
+      this.congratulations();
+    }
   }
 
   gameOver() {
-    // timeText.setText('Fin del juego');
     this.gameOverText = this.add.text(280, 280, "Fin del juego", {
       fontSize: "35px",
       fontStyle: "bold",
-      fill: "#FFF"
+      fill: "#FFF",
     });
-    this.gameOverText.setText("Fin del juego")
+    this.gameOverText.setText("Fin del juego");
     this.scene.pause();
-    // reiniciar el juego después de un retraso de 3 segundos
-    // this.time.addEvent({
-    //   delay: 3000,
-    //   callback: function () {
-    //     this.scene.restart(); // reinicia la escena actual
-    //   },
-    //   callbackScope: this,
-    //   loop: false
-    // });
   }
 
   congratulations() {
     this.congratsText = this.add.text(280, 280, "Congratulations", {
       fontSize: "35px",
       fontStyle: "bold",
-      fill: "#FFF"
+      fill: "#FFF",
     });
-    this.congratsText.setText("Congratulations")
+    this.congratsText.setText("Congratulations");
     this.scene.pause();
   }
 }
