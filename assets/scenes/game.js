@@ -3,17 +3,18 @@ const { PINE, ORANGE, APPLE, STRAW } = FRUIT;
 
 export default class Game extends Phaser.Scene {
   score;
-  timeLeft = 40;
+  timeLeft = 5;
+  gameOver;
   constructor() {
     super("game");
   }
 
   init() {
     this.fruitRecolected = {
-      [ORANGE]: { count: 0, score: 5 },
-      [APPLE]: { count: 0, score: 10 },
-      [PINE]: { count: 0, score: 15 },
-      [STRAW]: { count: 0, score: 20 },
+      [ORANGE]: { count: 0, score: 105 },
+      [APPLE]: { count: 0, score: 100 },
+      [PINE]: { count: 0, score: 105 },
+      [STRAW]: { count: 0, score: 200 },
     };
   }
   
@@ -81,6 +82,26 @@ export default class Game extends Phaser.Scene {
   }
 
   update() {
+    // //update player movement
+    // if (this.cursors.left.isDown) {
+    //   this.player.setVelocityX(-250);
+    // } else if (this.cursors.right.isDown) {
+    //   this.player.setVelocityX(250);
+    // } else {
+    //   this.player.setVelocityX(0);
+    // }
+    // //update player jump
+    // if (this.cursors.up.isDown && this.player.body.touching.down) {
+    //   this.player.setVelocityY(-180);
+    // }
+
+    if (this.score > 100) {
+      this.scene.start("Congrats");
+    }
+
+    if (this.gameOver) {
+      this.scene.start("GameOver");
+    }
     //update player movement
     if (this.cursors.left.isDown) {
       this.player.setVelocityX(-250);
@@ -91,7 +112,7 @@ export default class Game extends Phaser.Scene {
     }
     //update player jump
     if (this.cursors.up.isDown && this.player.body.touching.down) {
-      this.player.setVelocityY(-180);
+      this.player.setVelocityY(-150);
     }
   }
 
@@ -120,30 +141,27 @@ export default class Game extends Phaser.Scene {
     this.timeLeft--;
     this.timeText.setText("Tiempo restante: " + this.timeLeft);
     if (this.timeLeft <= 0) {
-      this.gameOver();
-    }
-    if (this.score >= 100) {
-      this.congratulations();
+      this.gameOver = true;
     }
   }
 
-  gameOver() {
-    this.gameOverText = this.add.text(280, 280, "Fin del juego", {
-      fontSize: "35px",
-      fontStyle: "bold",
-      fill: "#FFF",
-    });
-    this.gameOverText.setText("Fin del juego");
-    this.scene.pause();
-  }
+  // gameOver() {
+  //   this.gameOverText = this.add.text(280, 280, "Fin del juego", {
+  //     fontSize: "35px",
+  //     fontStyle: "bold",
+  //     fill: "#FFF",
+  //   });
+  //   this.gameOverText.setText("Fin del juego");
+  //   this.scene.pause();
+  // }
 
-  congratulations() {
-    this.congratsText = this.add.text(280, 280, "Congratulations", {
-      fontSize: "35px",
-      fontStyle: "bold",
-      fill: "#FFF",
-    });
-    this.congratsText.setText("Congratulations");
-    this.scene.pause();
-  }
+  // congratulations() {
+  //   this.congratsText = this.add.text(280, 280, "Congratulations", {
+  //     fontSize: "35px",
+  //     fontStyle: "bold",
+  //     fill: "#FFF",
+  //   });
+  //   this.congratsText.setText("Congratulations");
+  //   this.scene.pause();
+  // }
 }
