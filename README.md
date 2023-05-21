@@ -1,7 +1,7 @@
 <h1>Descripción</h1>
 
 <p>
-- Este proyecto resulta como trabajo práctico de la materia programación I, en la carrera de Producción de videojuegos y entretenimiento digital. Se trata de un juego desarrollado con Phaser JS, qeu simula un ninja-fruit.
+- Este proyecto resulta como trabajo práctico de la materia programación I, en la carrera de Producción de videojuegos y entretenimiento digital. Se trata de un juego desarrollado con Phaser JS, que simula un ninja-fruit.
 </p> 
 <img width="100%" src="https://github.com/davidboxler/juego-ninjaFruits-PhaserJS/blob/master/public/ninja.png" alt="ninja-fruit" />
 
