@@ -1,9 +1,20 @@
-import { FRUIT } from "../../utils/utils.js";
+import {
+  FRUIT,
+  POINTS_PERCENTAGE,
+  POINTS_PERCENTAGE_VALUE_START,
+} from "../../utils/utils.js";
+
 const { PINE, ORANGE, APPLE, STRAW } = FRUIT;
 
 export default class Game extends Phaser.Scene {
   score;
   timeLeft = 40;
+  gameOver;
+  audio;
+  collectGood;
+  collectBad;
+  jump;
+  
   constructor() {
     super("game");
   }
@@ -27,30 +38,41 @@ export default class Game extends Phaser.Scene {
     this.load.image(STRAW, "../assets/images/strawberry-1.png");
     this.load.image("win", "../assets/images/win.png");
     this.load.image("bgMenu", "./assets/images/bgMenu.jpg");
+
   }
 
   create() {
-    //add background
-    this.add.image(400, 300, "fondo").setScale(0.555);
+    this.audio = this.sound.add("sound", { loop: true });
+    this.collectGood = this.sound.add("collectGood");
+    this.collectBad = this.sound.add("collectBad");
+    this.jump = this.sound.add("jump").setVolume(0.3);
+    this.audio.stop();
+    this.audio.play();
+    this.audio.setVolume(0.2);
+    this.collectGood.setVolume(0.5);
+    this.collectBad.setVolume(0.5);
 
     //add static platforms group
     let platforms = this.physics.add.staticGroup();
-    platforms.create(400, 568, "ground").setScale(2).refreshBody();
+    platforms.create(400, 580, "ground").setScale(2).refreshBody();
+
+    let platforms1 = this.physics.add.staticGroup();
+    platforms.create(450, 450, "ground2").setScale(0.55).refreshBody();
+
+    //add fruits group
+    this.fruitsGroup = this.physics.add.group();
+
+    //create events to add fruits
+    this.time.addEvent({
+      delay: 500,
+      callback: this.addFruit, //cada vez que pase el tiempo se ejecuta esta funcion
+      callbackScope: this, //callBackScope hace que el this haga referencia a la escena
+      loop: true,
+    });
 
     //add sprites player
     this.player = this.physics.add.sprite(100, 450, "ninja");
     this.player.setCollideWorldBounds(true);
-
-    //add shapes group
-    this.shapesGroup = this.physics.add.group();
-
-    //create events to add shapes
-    this.time.addEvent({
-      delay: 1000,
-      callback: this.addShape, //cada vez que pase el tiempo se ejecuta esta funcion
-      callbackScope: this, //callBackScope hace que el this haga referencia a la escena
-      loop: true,
-    });
 
     //create cursors
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -66,6 +88,26 @@ export default class Game extends Phaser.Scene {
       this.player,
       this.shapesGroup,
       this.collectShape,
+    this.physics.add.collider(this.player, platforms1);
+    this.physics.add.collider(this.player, platforms2);
+    this.physics.add.collider(this.player, this.fruitsGroup);
+    this.physics.add.collider(platforms, this.fruitsGroup);
+    this.physics.add.collider(platforms1, this.fruitsGroup);
+    this.physics.add.collider(platforms2, this.fruitsGroup);
+
+    //add overlap between player and fruits
+    this.physics.add.overlap(
+      this.player,
+      this.fruitsGroup,
+      this.collectFruit,
+      null,
+      this
+    );
+
+    this.physics.add.overlap(
+      this.fruitsGroup,
+      platforms,
+      this.reduce,
       null,
       this
     );
@@ -93,6 +135,16 @@ export default class Game extends Phaser.Scene {
   }
 
   update() {
+    if (this.score > 100) {
+      this.scene.start("Congrats");
+      this.timeLeft = 40;
+    }
+
+    if (this.gameOver) {
+      this.scene.start("GameOver");
+      this.timeLeft = 40;
+    }
+
     //update player movement
     if (this.cursors.left.isDown) {
       this.player.setVelocityX(-250);
@@ -107,9 +159,10 @@ export default class Game extends Phaser.Scene {
     }
   }
 
-  addShape() {
-    //get random shape
-    const randomShape = Phaser.Math.RND.pick([STRAW, ORANGE, APPLE, PINE]); //selecciona aleatoriamente una forma
+  addFruit() {
+    //get random fruit
+    //selecciona aleatoriamente una forma
+    const randomFruit = Phaser.Math.RND.pick([STRAW, ORANGE, APPLE, PINE]);
 
     //get random position x
     const randomX = Phaser.Math.RND.between(0, 800);
@@ -157,5 +210,67 @@ export default class Game extends Phaser.Scene {
     });
     this.congratsText.setText("Congratulations");
     this.scene.pause();
+    
+    // add fruit to screen
+    this.fruitsGroup
+      .create(randomX, 0, randomFruit)
+      .setCircle(32, 0, 0)
+      .setBounce(0.8)
+      .setData(POINTS_PERCENTAGE, POINTS_PERCENTAGE_VALUE_START);
+
+    console.log("fruit is added", randomX, randomFruit);
+  }
+
+  collectFruit(player, fruit) {
+    //remove fruit from screen
+    fruit.disableBody(true, true);
+    const fruitName = fruit.texture.key;
+    const percentage = fruit.getData(POINTS_PERCENTAGE);
+    const scoreNow = this.fruitRecolected[fruitName].score * percentage;
+
+    if (
+      fruit.texture.key === APPLE ||
+      fruit.texture.key === ORANGE ||
+      fruit.texture.key === PINE
+    ) {
+      this.collectGood.play();
+    } else {
+      this.collectBad.play();
+    }
+    this.score += scoreNow;
+    this.scoreText.setText(`Score: ${this.score.toString()}`);
+    this.fruitRecolected[fruitName].count++;
+  }
+
+  timer() {
+    this.timeLeft--;
+    this.timeText.setText("Tiempo restante: " + this.timeLeft);
+    if (this.timeLeft <= 0) {
+      this.gameOver = true;
+    }
+  }
+
+  reduce(fruit, platform) {
+    const newPercentage = fruit.getData(POINTS_PERCENTAGE) - 0.25;
+    console.log(fruit.texture.key, newPercentage);
+    fruit.setData(POINTS_PERCENTAGE, newPercentage);
+    if (newPercentage <= 0) {
+      fruit.disableBody(true, true);
+      return;
+    }
+    // show text
+    const text = this.add.text(
+      fruit.body.position.x + 10,
+      fruit.body.position.y,
+      "- 25%",
+      {
+        fontSize: "22px",
+        fontStyle: "bold",
+        fill: "red",
+      }
+    );
+    setTimeout(() => {
+      text.destroy();
+    }, 200);
   }
 }

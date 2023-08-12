@@ -4,7 +4,3 @@ const FRUIT = {
     APPLE: "apple",
     STRAW: "strawberry"
 }
-
-export {
-    FRUIT,
-}
