@@ -3,6 +3,7 @@ import {
   POINTS_PERCENTAGE,
   POINTS_PERCENTAGE_VALUE_START,
 } from "../../utils/utils.js";
+
 const { PINE, ORANGE, APPLE, STRAW } = FRUIT;
 
 export default class Game extends Phaser.Scene {
@@ -13,18 +14,31 @@ export default class Game extends Phaser.Scene {
   collectGood;
   collectBad;
   jump;
+  
   constructor() {
     super("game");
   }
 
   init() {
-    this.gameOver = false;
     this.fruitRecolected = {
       [ORANGE]: { count: 0, score: 5 },
-      [APPLE]: { count: 0, score: 15 },
-      [PINE]: { count: 0, score: 25 },
-      [STRAW]: { count: 0, score: -10 },
+      [APPLE]: { count: 0, score: 10 },
+      [PINE]: { count: 0, score: 15 },
+      [STRAW]: { count: 0, score: 20 },
     };
+  }
+
+  preload() {
+    this.load.image("fondo", "../assets/images/fondo-3.jpg");
+    this.load.image("ground", "../assets/images/piso-1.png");
+    this.load.image("ninja", "../assets/images/ninja.png");
+    this.load.image(ORANGE, "../assets/images/orange-1.png");
+    this.load.image(APPLE, "../assets/images/apple-1.png");
+    this.load.image(PINE, "../assets/images/pine-1.png");
+    this.load.image(STRAW, "../assets/images/strawberry-1.png");
+    this.load.image("win", "../assets/images/win.png");
+    this.load.image("bgMenu", "./assets/images/bgMenu.jpg");
+
   }
 
   create() {
@@ -38,18 +52,12 @@ export default class Game extends Phaser.Scene {
     this.collectGood.setVolume(0.5);
     this.collectBad.setVolume(0.5);
 
-    //add background
-    this.add.image(400, 300, "fondoDia").setScale(0.555);
-
     //add static platforms group
     let platforms = this.physics.add.staticGroup();
     platforms.create(400, 580, "ground").setScale(2).refreshBody();
 
     let platforms1 = this.physics.add.staticGroup();
     platforms.create(450, 450, "ground2").setScale(0.55).refreshBody();
-
-    let platforms2 = this.physics.add.staticGroup();
-    platforms.create(200, 200, "ground2").setScale(0.55).refreshBody();
 
     //add fruits group
     this.fruitsGroup = this.physics.add.group();
@@ -72,6 +80,14 @@ export default class Game extends Phaser.Scene {
     //add collider between player and platforms
     //Agregar colisones a la escena.Colision entre dos objetos.
     this.physics.add.collider(this.player, platforms);
+    this.physics.add.collider(this.player, this.shapesGroup);
+    this.physics.add.collider(platforms, this.shapesGroup);
+
+    //add overlap between player and shapes
+    this.physics.add.overlap(
+      this.player,
+      this.shapesGroup,
+      this.collectShape,
     this.physics.add.collider(this.player, platforms1);
     this.physics.add.collider(this.player, platforms2);
     this.physics.add.collider(this.player, this.fruitsGroup);
@@ -139,8 +155,7 @@ export default class Game extends Phaser.Scene {
     }
     //update player jump
     if (this.cursors.up.isDown && this.player.body.touching.down) {
-      this.player.setVelocityY(-220);
-      this.jump.play();
+      this.player.setVelocityY(-180);
     }
   }
 
@@ -152,6 +167,50 @@ export default class Game extends Phaser.Scene {
     //get random position x
     const randomX = Phaser.Math.RND.between(0, 800);
 
+    // add shape to screen
+    this.shapesGroup.create(randomX, 0, randomShape);
+  }
+
+  collectShape(player, shape) {
+    //remove shape from screen
+    shape.disableBody(true, true);
+    const shapeName = shape.texture.key;
+    this.fruitRecolected[shapeName].count++;
+
+    this.score += this.fruitRecolected[shapeName].score;
+    this.scoreText.setText(`Score: ${this.score.toString()}`);
+  }
+
+  timer() {
+    this.timeLeft--;
+    this.timeText.setText("Tiempo restante: " + this.timeLeft);
+    if (this.timeLeft <= 0) {
+      this.gameOver();
+    }
+    if (this.score >= 100) {
+      this.congratulations();
+    }
+  }
+
+  gameOver() {
+    this.gameOverText = this.add.text(280, 280, "Fin del juego", {
+      fontSize: "35px",
+      fontStyle: "bold",
+      fill: "#FFF",
+    });
+    this.gameOverText.setText("Fin del juego");
+    this.scene.pause();
+  }
+
+  congratulations() {
+    this.congratsText = this.add.text(280, 280, "Congratulations", {
+      fontSize: "35px",
+      fontStyle: "bold",
+      fill: "#FFF",
+    });
+    this.congratsText.setText("Congratulations");
+    this.scene.pause();
+    
     // add fruit to screen
     this.fruitsGroup
       .create(randomX, 0, randomFruit)

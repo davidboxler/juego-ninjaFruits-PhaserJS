@@ -1,5 +1,3 @@
-import Menu from "../assets/scenes/Menu.js";
-import Preload from "../assets/scenes/Preloads.js";
 import Game from "../assets/scenes/game.js";
 import Congrats from "../assets/scenes/congrats.js";
 import Defeat from "../assets/scenes/gameOver.js";
@@ -28,6 +26,7 @@ const config = {
       debug: false,
     },
   },
+  
   // List of scenes to load
   // Only the first scene will be shown
   // Remember to import the scene before adding it to the list
